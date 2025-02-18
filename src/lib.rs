@@ -79,7 +79,7 @@ pub fn get_args() -> HeaderResult<Config> {
     })
 }
 
-/// 解析正整数，确保输入的数字大于0
+/// 解析正整数，确保输入的数字大于0 普通函数自动实现Fn FnOnce FnMut
 fn parse_positive_int(s: &str) -> HeaderResult<usize> {
     match s.parse() {
         Ok(n) if n > 0 => Ok(n),
