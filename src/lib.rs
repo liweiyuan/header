@@ -104,9 +104,15 @@ pub fn run(config: Config) -> Result<()> {
     for filename in config.files {
         match open(&filename) {
             Err(e) => eprintln!("{}: {}", filename, e),
-            Ok(file) => {
-                for line in file.lines().take(config.lines) {
-                    println!("{}", line?);
+            Ok(mut file) => {
+                let mut line = String::new();
+                for _ in 0..config.lines {
+                    let bytes = file.read_line(&mut line)?;
+                    if bytes == 0 {
+                        break;
+                    }
+                    println!("{}", line);
+                    line.clear();
                 }
             }
         }
