@@ -1,9 +1,8 @@
+use anyhow::{anyhow, Context, Result};
 use clap::{App, Arg};
 
-// 自定义错误类型，用于处理程序中可能出现的所有错误
-type HeaderResult<T> = Result<T, Box<dyn std::error::Error>>;
-
 // 配置结构体，存储命令行参数
+
 #[derive(Debug)]
 pub struct Config {
     files: Vec<String>,   // 要处理的文件列表
@@ -12,7 +11,7 @@ pub struct Config {
 }
 
 /// 解析命令行参数并返回配置
-pub fn get_args() -> HeaderResult<Config> {
+pub fn get_args() -> Result<Config> {
     // 创建命令行应用程序
     let matches = App::new("header")
         .version("0.1.0")
@@ -47,6 +46,13 @@ pub fn get_args() -> HeaderResult<Config> {
         )
         .get_matches();
 
+    //定义闭包来解析正整数
+    let parse_positive_int = |s: &str| -> Result<usize> {
+        match s.parse() {
+            Ok(n) if n > 0 => Ok(n),
+            _ => Err(anyhow!("illegal number: {}", s)),
+        }
+    };
     /*
      * transpose 函数的作用：
      * 当遇到 `Some(Ok(v))` 时，会返回 `Ok(Some(v))`
@@ -59,14 +65,14 @@ pub fn get_args() -> HeaderResult<Config> {
         .value_of("lines") // 获取 lines 参数的值
         .map(parse_positive_int) // 将值转换为正整数
         .transpose() // 将结果转换为 Option<usize>
-        .map_err(|e| format!("illegal line count ... {}", e))?; // 如果转换失败，返回错误
+        .context("Failed to parse lines count")?; // 如果转换失败，返回错误
 
     // 解析 bytes 参数
     let bytes = matches
         .value_of("bytes")
         .map(parse_positive_int)
         .transpose()
-        .map_err(|e| format!("illegal byte count ... {}", e))?;
+        .context("Failed to parse bytes count")?;
 
     // 获取文件列表
     let files = matches.values_of_lossy("files").unwrap_or_default();
@@ -74,21 +80,13 @@ pub fn get_args() -> HeaderResult<Config> {
     // 返回配置对象
     Ok(Config {
         files,
-        lines: lines.unwrap(),
-        bytes: bytes,
+        lines: lines.unwrap_or(10),
+        bytes,
     })
 }
 
-/// 解析正整数，确保输入的数字大于0 普通函数自动实现Fn FnOnce FnMut
-fn parse_positive_int(s: &str) -> HeaderResult<usize> {
-    match s.parse() {
-        Ok(n) if n > 0 => Ok(n),
-        _ => Err(From::from(s)), // 解析失败或数字小于等于0时返回错误
-    }
-}
-
 /// 运行程序的主要逻辑
-pub fn run(config: Config) -> HeaderResult<()> {
+pub fn run(config: Config) -> Result<()> {
     // TODO: 实现文件读取和内容显示的逻辑
     Ok(())
 }
