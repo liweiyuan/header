@@ -1,3 +1,8 @@
+use std::{
+    fs::File,
+    io::{self, BufRead, BufReader},
+};
+
 use anyhow::{anyhow, Context, Result};
 use clap::{App, Arg};
 
@@ -85,8 +90,26 @@ pub fn get_args() -> Result<Config> {
     })
 }
 
+fn open(filename: &str) -> Result<Box<dyn BufRead>> {
+    match filename {
+        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+        _ => Ok(Box::new(BufReader::new(
+            File::open(filename).context(format!("Failed to open file: {}", filename))?,
+        ))),
+    }
+}
+
 /// 运行程序的主要逻辑
 pub fn run(config: Config) -> Result<()> {
-    // TODO: 实现文件读取和内容显示的逻辑
+    for filename in config.files {
+        match open(&filename) {
+            Err(e) => eprintln!("{}: {}", filename, e),
+            Ok(file) => {
+                for line in file.lines().take(config.lines) {
+                    println!("{}", line?);
+                }
+            }
+        }
+    }
     Ok(())
 }
