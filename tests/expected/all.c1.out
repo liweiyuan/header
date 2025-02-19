@@ -5,6 +5,6 @@
 ==> ./tests/inputs/two.txt <==
 T
 ==> ./tests/inputs/three.txt <==
-T
-==> ./tests/inputs/twelve.txt <==
 o
+==> ./tests/inputs/ten.txt <==
+T

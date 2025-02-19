@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader},
+    io::{self, BufRead, BufReader, Read},
 };
 
 use anyhow::{anyhow, Context, Result};
@@ -70,14 +70,20 @@ pub fn get_args() -> Result<Config> {
         .value_of("lines") // 获取 lines 参数的值
         .map(parse_positive_int) // 将值转换为正整数
         .transpose() // 将结果转换为 Option<usize>
-        .context("Failed to parse lines count")?; // 如果转换失败，返回错误
+        .context(format!(
+            "Failed to parse lines count: {}",
+            matches.value_of("lines").unwrap_or("unknown")
+        ))?; // 如果转换失败，返回错误并包含失败的字符串
 
     // 解析 bytes 参数
     let bytes = matches
         .value_of("bytes")
         .map(parse_positive_int)
         .transpose()
-        .context("Failed to parse bytes count")?;
+        .context(format!(
+            "Failed to parse bytes count: {}",
+            matches.value_of("bytes").unwrap_or("unknown")
+        ))?;
 
     // 获取文件列表
     let files = matches.values_of_lossy("files").unwrap_or_default();
@@ -101,18 +107,34 @@ fn open(filename: &str) -> Result<Box<dyn BufRead>> {
 
 /// 运行程序的主要逻辑
 pub fn run(config: Config) -> Result<()> {
-    for filename in config.files {
+    let num_files = config.files.len();
+    for (file_num, filename) in config.files.iter().enumerate() {
         match open(&filename) {
             Err(e) => eprintln!("{}: {}", filename, e),
             Ok(mut file) => {
-                let mut line = String::new();
-                for _ in 0..config.lines {
-                    let bytes = file.read_line(&mut line)?;
-                    if bytes == 0 {
-                        break;
+                //多个文件处理
+                if num_files > 1 {
+                    println!(
+                        "{}==> {} <==",
+                        if file_num > 0 { "\n" } else { "" },
+                        &filename
+                    );
+                }
+                if let Some(num_bytes) = config.bytes {
+                    let mut handle = file.take(num_bytes as u64);
+                    let mut buffer = vec![0; num_bytes];
+                    let bytes_read = handle.read(&mut buffer)?;
+                    println!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
+                } else {
+                    let mut line = String::new();
+                    for _ in 0..config.lines {
+                        let bytes = file.read_line(&mut line)?;
+                        if bytes == 0 {
+                            break;
+                        }
+                        println!("{}", line);
+                        line.clear();
                     }
-                    println!("{}", line);
-                    line.clear();
                 }
             }
         }

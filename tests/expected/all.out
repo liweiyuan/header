@@ -6,10 +6,6 @@
 Two lines.
 Four words.
 ==> ./tests/inputs/three.txt <==
-Three
-lines,
-four words.
-==> ./tests/inputs/twelve.txt <==
 one
 two
 three
@@ -20,3 +16,8 @@ seven
 eight
 nine
 ten
+
+==> ./tests/inputs/ten.txt <==
+Three
+lines,
+four words.
