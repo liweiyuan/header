@@ -124,7 +124,7 @@ pub fn run(config: Config) -> Result<()> {
                     let mut handle = file.take(num_bytes as u64);
                     let mut buffer = vec![0; num_bytes];
                     let bytes_read = handle.read(&mut buffer)?;
-                    println!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
+                    print!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
                 } else {
                     let mut line = String::new();
                     for _ in 0..config.lines {
@@ -132,7 +132,7 @@ pub fn run(config: Config) -> Result<()> {
                         if bytes == 0 {
                             break;
                         }
-                        println!("{}", line);
+                        print!("{}", line);
                         line.clear();
                     }
                 }

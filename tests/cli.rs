@@ -146,10 +146,10 @@ fn empty_n4() -> HeaderResult<()> {
 }
 
 // --------------------------------------------------
-/* #[test]
+#[test]
 fn empty_c2() -> HeaderResult<()> {
     run(&[EMPTY, "-c", "2"], "tests/expected/empty.txt.c2.out")
-} */
+}
 
 // --------------------------------------------------
 #[test]
